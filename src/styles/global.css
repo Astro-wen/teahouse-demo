@@ -1,0 +1,94 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0b1020;
+  color: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(99, 102, 241, 0.22), transparent 28%),
+    radial-gradient(circle at 86% 8%, rgba(236, 72, 153, 0.18), transparent 30%),
+    linear-gradient(180deg, #0b1020 0%, #111827 54%, #050816 100%);
+}
+
+button {
+  font: inherit;
+}
+
+.demo-page {
+  min-height: 100vh;
+  padding: 28px;
+}
+
+.demo-shell {
+  width: min(1280px, 100%);
+  margin: 0 auto;
+}
+
+.demo-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.demo-kicker {
+  margin: 0 0 6px;
+  color: #a5b4fc;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.demo-header h1 {
+  margin: 0;
+  font-size: clamp(24px, 4vw, 42px);
+  line-height: 1.1;
+}
+
+.demo-link {
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 16px;
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.demo-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 16px;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .demo-page {
+    padding: 16px;
+  }
+
+  .demo-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

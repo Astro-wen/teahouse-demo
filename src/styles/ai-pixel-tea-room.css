@@ -1,0 +1,383 @@
+/* ==========================================================
+ * 像素茶水间 · Pixel Tea Room (.ptr-*)
+ * ----------------------------------------------------------
+ * 三层叠加：
+ *   .ptr-canvas (1280×720 逻辑画布)
+ *     ├── .ptr-bg            房间底图 <img>
+ *     ├── .ptr-seat          座位透明点击热区
+ *     ├── .ptr-avatar        像素小人（sprite sheet 动画）
+ *     ├── .ptr-topic-board   房间话题面板（装饰）
+ *     └── .ptr-hint          底部提示
+ *
+ * 容器使用 transform: scale 等比缩放，所有内部元素按
+ * 1280×720 逻辑坐标定位，确保座位 / 人物坐标永远精准对齐。
+ * ========================================================== */
+
+/* ===== 外层包裹 ===== */
+.ptr-wrapper {
+  width: 100%;
+  margin: 0 auto 24px;
+  /* 限制最大宽度，避免在超大屏上像素被拉太大 */
+  max-width: 1280px;
+  user-select: none;
+}
+
+/* ===== 舞台（不参与 scale，用于固定 topbar / actionbar） ===== */
+.ptr-stage {
+  position: relative;
+  /* width/height 由 JS 动态注入（=1280×scale, 720×scale） */
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #0e0e14;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+/* ===== 1280×720 逻辑画布（参与 scale） ===== */
+.ptr-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
+  /* width/height/transform 由 JS 注入 */
+}
+
+/* ===== 房间底图（<img> 静态图 / <video> 循环动画 共用） ===== */
+.ptr-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  /* 图片像素感（仅对 img 生效；video 在 Chromium 系也部分支持） */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  /* 视频背景兜底色：避免视频加载/缓冲时出现白色闪烁 */
+  background-color: #1a1a2e;
+}
+
+/* ===== 座位点击热区 ===== */
+.ptr-seat {
+  position: absolute;
+  width: 80px;
+  height: 90px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  z-index: 50;
+  transition: background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ptr-seat:hover:not(:disabled) {
+  background-color: rgba(140, 200, 255, 0.18);
+  box-shadow: 0 0 0 2px rgba(140, 200, 255, 0.55) inset;
+}
+
+.ptr-seat:focus-visible {
+  outline: 2px solid #8ac8ff;
+  outline-offset: 2px;
+}
+
+.ptr-seat--occupied {
+  cursor: not-allowed;
+}
+
+.ptr-seat--occupied:not(.ptr-seat--mine) {
+  background-color: rgba(255, 80, 80, 0.10);
+}
+
+.ptr-seat--mine {
+  cursor: default;
+}
+
+/* ===== 像素小人 ===== */
+.ptr-avatar {
+  position: absolute;
+  pointer-events: none;
+  /* 让昵称浮在头顶 */
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+.ptr-avatar--me {
+  /* 可加发光效果突出当前用户 */
+  filter: drop-shadow(0 0 6px rgba(140, 200, 255, 0.55));
+}
+
+.ptr-avatar__name {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+  white-space: nowrap;
+  backdrop-filter: blur(2px);
+}
+
+.ptr-avatar__dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 4px #4ade80;
+}
+
+/* ===== 顶部信息条 ===== */
+.ptr-topbar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.ptr-topbar__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(20, 20, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.ptr-topbar__icon {
+  font-size: 14px;
+}
+
+.ptr-topbar__stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ptr-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(20, 20, 28, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.ptr-stat--online {
+  color: #fff;
+}
+
+.ptr-stat__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.7);
+}
+
+/* ===== 房间话题面板（右上角浮层） ===== */
+.ptr-topic-board {
+  position: absolute;
+  right: 24px;
+  top: 90px;
+  width: 168px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.92);
+  background: linear-gradient(
+    135deg,
+    rgba(31, 26, 60, 0.78),
+    rgba(20, 18, 40, 0.78)
+  );
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(167, 139, 250, 0.15) inset;
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  z-index: 80;
+}
+
+.ptr-topic-board__title {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c4b5fd;
+  border-bottom: 1px dashed rgba(167, 139, 250, 0.3);
+}
+
+.ptr-topic-board__list {
+  margin: 0;
+  padding-left: 16px;
+  list-style: disc;
+}
+
+.ptr-topic-board__list li {
+  margin-bottom: 4px;
+}
+
+.ptr-topic-board__list li:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== 底部提示气泡 ===== */
+.ptr-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 80px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(99, 102, 241, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.45);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 90;
+  animation: ptr-hint-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes ptr-hint-bob {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -3px); }
+}
+
+/* ===== 底部操作栏 ===== */
+.ptr-actionbar {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.ptr-actionbar__left,
+.ptr-actionbar__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.ptr-actionbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(20, 20, 28, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background-color 0.15s ease, transform 0.15s ease, color 0.15s ease;
+}
+
+.ptr-actionbtn:hover:not(:disabled) {
+  background: rgba(40, 40, 55, 0.85);
+  transform: translateY(-1px);
+}
+
+.ptr-actionbtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.ptr-actionbtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ptr-actionbtn--primary {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.45);
+}
+
+.ptr-actionbtn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c7fff, #a78bfa);
+}
+
+/* ===== 响应式（窄屏） ===== */
+@media (max-width: 768px) {
+  .ptr-wrapper {
+    margin-bottom: 16px;
+  }
+  .ptr-stage {
+    border-radius: 10px;
+  }
+  .ptr-topbar,
+  .ptr-actionbar {
+    left: 8px;
+    right: 8px;
+  }
+  .ptr-topbar__title,
+  .ptr-stat,
+  .ptr-actionbtn {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .ptr-topic-board {
+    width: 140px;
+    right: 12px;
+    top: 70px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+  .ptr-hint {
+    bottom: 60px;
+    font-size: 11px;
+  }
+}
+
+/* ===== reduce-motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ptr-avatar {
+    animation: none !important;
+  }
+  .ptr-hint {
+    animation: none !important;
+  }
+}
