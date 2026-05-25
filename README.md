@@ -2,6 +2,11 @@
 
 AIWorld 像素茶水间独立 Demo。
 
+> 在线预览：<https://astro-wen.github.io/teahouse-demo/>
+>
+> 每次推到 `main` 分支后，GitHub Actions 会自动构建并发布到 GitHub Pages。
+> 首次启用需要在 GitHub 仓库 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
+
 ## 新版亮点（v2）
 
 - **背景升级为视频**：早 / 午 / 晚 三段 1280×720 / 24fps / 15 秒循环视频
