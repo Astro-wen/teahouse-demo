@@ -36,7 +36,7 @@ import {
 // 标注器懒加载，仅 ?annotate=1 时拉取
 const ZoneAnnotator = lazy(() => import('./ZoneAnnotator'));
 
-const BG_BASE = '/assets/teahouse-room/bg';
+const BG_BASE = `${import.meta.env.BASE_URL}assets/teahouse-room/bg`;
 const VIDEO_URL: Record<DaySlot, string> = {
   morning:   `${BG_BASE}/morning.mp4`,
   afternoon: `${BG_BASE}/afternoon.mp4`,

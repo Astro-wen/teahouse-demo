@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { validateZonesDoc, type ZonesDoc } from './zones.schema';
 
-const ZONES_URL = '/assets/teahouse-room/bg/zones.json';
+const ZONES_URL = `${import.meta.env.BASE_URL}assets/teahouse-room/bg/zones.json`;
 
 /** 极简兜底：屏幕中央一片站立区，覆盖 1280×720，没有任何 block 与 seat */
 const FALLBACK_DOC: ZonesDoc = {

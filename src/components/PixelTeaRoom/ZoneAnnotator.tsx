@@ -39,7 +39,7 @@ import {
   type ZonesDoc,
 } from './zones.schema';
 
-const BG_BASE = '/assets/teahouse-room/bg';
+const BG_BASE = `${import.meta.env.BASE_URL}assets/teahouse-room/bg`;
 const POSTER_URL = {
   morning:   `${BG_BASE}/morning-poster.jpg`,
   afternoon: `${BG_BASE}/afternoon-poster.jpg`,

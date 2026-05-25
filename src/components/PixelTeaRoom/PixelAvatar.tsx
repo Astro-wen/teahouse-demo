@@ -51,7 +51,7 @@ function resolveSprite(
   return { sheetKey: `avatar-${avatarId}-${pose}`, mirrorOverride: null };
 }
 
-const ASSET_BASE = '/assets/teahouse-room/avatars';
+const ASSET_BASE = `${import.meta.env.BASE_URL}assets/teahouse-room/avatars`;
 
 export function poseFromFacing(facing: Facing): Pose {
   if (facing === 'right') return 'sit-right';
