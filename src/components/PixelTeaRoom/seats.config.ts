@@ -87,8 +87,8 @@ export const DECOR_ONLINE_COUNT_RANGE: [number, number] = [18, 36];
 /** 总座位数（含吧台，仅供统计） */
 export const TOTAL_SEATS = SEATS.length;
 
-/** 本期 NPC 数量随机区间（含"我"） */
-export const NPC_COUNT_RANGE: [number, number] = [5, 9];
+/** 本期 NPC 数量随机区间（不含"我"，"我"在外面单独加 1） */
+export const NPC_COUNT_RANGE: [number, number] = [0, 4];
 
 /** 期望坐着的比例：决定每次场景大致多少人坐、多少人站 */
 export const SIT_RATIO = 0.6;
