@@ -1,53 +1,18 @@
 {
-  "version": 1,
+  "version": 2,
   "room": {
     "logicalWidth": 1280,
     "logicalHeight": 720,
-    "imageNaturalWidth": 1672,
-    "imageNaturalHeight": 941
+    "videoSlots": ["morning", "afternoon", "night"],
+    "videoDurationSec": 15.0,
+    "videoFps": 24,
+    "videoGop": 360
   },
   "sprites": {
-    "avatar-01-stand": {
-      "sheetWidth": 172,
-      "sheetHeight": 140,
-      "frameWidth": 43,
-      "frameHeight": 140,
-      "frameCount": 4
-    },
-    "avatar-01-sit-left": {
-      "sheetWidth": 171,
-      "sheetHeight": 120,
-      "frameWidth": 57,
-      "frameHeight": 120,
-      "frameCount": 3
-    },
-    "avatar-01-sit-right": {
-      "sheetWidth": 153,
-      "sheetHeight": 120,
-      "frameWidth": 51,
-      "frameHeight": 120,
-      "frameCount": 3
-    },
-    "avatar-03-stand": {
-      "sheetWidth": 372,
-      "sheetHeight": 140,
-      "frameWidth": 93,
-      "frameHeight": 140,
-      "frameCount": 4
-    },
-    "avatar-03-sit-left": {
-      "sheetWidth": 267,
-      "sheetHeight": 120,
-      "frameWidth": 89,
-      "frameHeight": 120,
-      "frameCount": 3
-    },
-    "avatar-03-sit-right": {
-      "sheetWidth": 195,
-      "sheetHeight": 120,
-      "frameWidth": 65,
-      "frameHeight": 120,
-      "frameCount": 3
-    }
+    "avatar-01-stand":     { "sheetWidth": 172, "sheetHeight": 140, "frameWidth": 43, "frameHeight": 140, "frameCount": 4 },
+    "avatar-01-sit-left":  { "sheetWidth": 171, "sheetHeight": 120, "frameWidth": 57, "frameHeight": 120, "frameCount": 3 },
+    "avatar-01-sit-right": { "sheetWidth": 153, "sheetHeight": 120, "frameWidth": 51, "frameHeight": 120, "frameCount": 3 },
+    "avatar-03-stand":     { "sheetWidth": 366, "sheetHeight": 140, "frameWidth": 61, "frameHeight": 140, "frameCount": 6 },
+    "avatar-03-sit-right": { "sheetWidth": 130, "sheetHeight": 120, "frameWidth": 65, "frameHeight": 120, "frameCount": 2, "$note": "sit-left 通过运行时镜像此 sheet 得到，不再单独提供 sit-left 文件" }
   }
 }

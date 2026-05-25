@@ -7,7 +7,7 @@ export default function App() {
         <header className="demo-header">
           <div>
             <p className="demo-kicker">AIWorld · Pixel Lounge</p>
-            <h1>像素茶水间 Demo</h1>
+            <h1>像素茶水间 Demo · v2</h1>
           </div>
           <a
             className="demo-link"
@@ -22,8 +22,8 @@ export default function App() {
         <PixelTeaRoom />
 
         <footer className="demo-footer">
-          <span>纯前端氛围展示，不依赖登录、不请求后端。</span>
-          <span>点击空座位可坐下，左右皮椅会自动切换坐姿朝向。</span>
+          <span>背景按本机时间在 早 / 午 / 晚 三段视频间自动切换。</span>
+          <span>每次刷新随机生成 NPC 与"我"的位置；右下三个按钮可演示。</span>
         </footer>
       </section>
     </main>

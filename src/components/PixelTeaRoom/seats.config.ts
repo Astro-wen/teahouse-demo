@@ -1,73 +1,104 @@
 /**
- * 像素茶水间 - 座位与 NPC 配置
+ * 像素茶水间 v2 - 座位 / 站立点 / 角色配置
  * --------------------------------------------------
  * 所有坐标基于 1280×720 逻辑画布，表示「人物脚底中心点」。
- * 实际渲染时，外层容器会按容器宽度 transform: scale 等比缩放。
+ * 实际渲染由外层 transform: scale 等比缩放，无需改动坐标。
  *
- * 背景为 1280×720 循环播放视频（background.mp4），坐标系直接对齐视频像素。
- * 门在房间左侧（"AI TEA HOUSE" 霓虹灯下方）。
+ * 背景：早/午/晚三段循环视频（皆为 1280×720 同房间不同光照），
+ * 共用同一套座位 / 站立点坐标。
+ *
+ * 重要约束：吧台座位不放任何人物（NPC 与"我"都不能落在吧台）。
  */
 
 export type Facing = 'left' | 'right' | 'front';
 
+/** 坐着的座位 */
 export interface Seat {
-  /** 唯一座位 id */
   id: string;
-  /** 脚底中心 X（基于 1280 逻辑宽） */
+  /** 脚底中心 X */
   x: number;
-  /** 脚底中心 Y（基于 720 逻辑高） */
+  /** 脚底中心 Y */
   y: number;
-  /** 朝向。front 退化为 left */
   facing: Facing;
-  /** hover 提示文案 */
+  label: string;
+  /** 是否允许放人（吧台为 false） */
+  spawnable: boolean;
+  kind: 'sofa' | 'armchair' | 'bar';
+}
+
+/** 站立点 */
+export interface StandSpot {
+  id: string;
+  x: number;
+  y: number;
+  /** 站立朝向（控制是否 mirror sprite） */
+  facing: Facing;
   label: string;
 }
 
-/** 1280×720 逻辑画布尺寸（与视频原生分辨率一致） */
+/** 1280×720 逻辑画布尺寸（与转码后的视频一致） */
 export const ROOM_LOGICAL_WIDTH = 1280;
 export const ROOM_LOGICAL_HEIGHT = 720;
 
-/** 门口入场点（小人初始站立位置，左侧门前地毯） */
-export const DOOR_SPAWN = { x: 165, y: 385 };
+/** 门口入场点（左侧大门下地毯前）。"我"复位时用 */
+export const DOOR_SPAWN = { x: 135, y: 415 };
 
-/** 房间所有可坐座位（基于 1280×720 视频帧目测标定） */
+/**
+ * 全部座位（吧台保留以便 UI 显示空座统计，但 spawnable=false 不放人）。
+ * 坐标基于新房间 1280×720 morning poster 目测标定。
+ */
 export const SEATS: Seat[] = [
-  // L 形沙发（4 个位置）
-  { id: 'sofa-1', x: 345, y: 410, facing: 'right', label: '沙发左座' },
-  { id: 'sofa-2', x: 420, y: 415, facing: 'front', label: '沙发中座' },
-  { id: 'sofa-3', x: 515, y: 415, facing: 'front', label: '沙发右座' },
-  { id: 'sofa-4', x: 600, y: 420, facing: 'left',  label: '沙发拐角座' },
+  // L 形蓝色沙发（4 个位置）
+  { id: 'sofa-1', x: 440, y: 360, facing: 'right', label: '沙发左座',  spawnable: true, kind: 'sofa' },
+  { id: 'sofa-2', x: 530, y: 365, facing: 'front', label: '沙发中左',  spawnable: true, kind: 'sofa' },
+  { id: 'sofa-3', x: 620, y: 370, facing: 'front', label: '沙发中右',  spawnable: true, kind: 'sofa' },
+  { id: 'sofa-4', x: 705, y: 380, facing: 'left',  label: '沙发拐角',  spawnable: true, kind: 'sofa' },
 
-  // 单人皮椅（2 张相对而坐）
-  { id: 'armchair-left',  x: 800, y: 555, facing: 'right', label: '皮椅 · 朝右' },
-  { id: 'armchair-right', x: 945, y: 555, facing: 'left',  label: '皮椅 · 朝左' },
+  // 棕色单人皮椅（2 张相对而坐）
+  { id: 'armchair-left',  x: 815,  y: 530, facing: 'right', label: '皮椅 · 左', spawnable: true, kind: 'armchair' },
+  { id: 'armchair-right', x: 1000, y: 530, facing: 'left',  label: '皮椅 · 右', spawnable: true, kind: 'armchair' },
 
-  // 吧台高脚凳（3 个）
-  { id: 'bar-1', x: 800, y: 305, facing: 'front', label: '吧台凳' },
-  { id: 'bar-2', x: 880, y: 305, facing: 'front', label: '吧台凳' },
-  { id: 'bar-3', x: 960, y: 305, facing: 'front', label: '吧台凳' },
+  // 吧台高脚凳（3 个；不放人，仅供统计） — spawnable: false
+  { id: 'bar-1', x: 720, y: 320, facing: 'front', label: '吧台凳', spawnable: false, kind: 'bar' },
+  { id: 'bar-2', x: 800, y: 320, facing: 'front', label: '吧台凳', spawnable: false, kind: 'bar' },
+  { id: 'bar-3', x: 880, y: 320, facing: 'front', label: '吧台凳', spawnable: false, kind: 'bar' },
 ];
+
+/** 房间内可站立的零散点（路过 / 看东西 / 倚墙等） */
+export const STAND_SPOTS: StandSpot[] = [
+  { id: 'stand-vending',  x: 320,  y: 480, facing: 'right', label: '售货机前' },
+  { id: 'stand-rug',      x: 490,  y: 560, facing: 'front', label: '茶几地毯前' },
+  { id: 'stand-window',   x: 1130, y: 490, facing: 'left',  label: '窗边猫窝旁' },
+  { id: 'stand-bar-front',x: 770,  y: 380, facing: 'front', label: '吧台前' },
+  { id: 'stand-plant',    x: 380,  y: 360, facing: 'front', label: '花盆旁'  },
+];
+
+/** 可放人的座位（排除吧台） */
+export const SPAWNABLE_SEATS: Seat[] = SEATS.filter(s => s.spawnable);
 
 export type AvatarId = '01' | '03';
 
-/** 可用的角色形象 ID（每次进入随机分配） */
+/** 可用的角色形象 ID */
 export const AVAILABLE_AVATARS: AvatarId[] = ['01', '03'];
 
-/** 写死的氛围 NPC（页面进入时即坐在那里，占用座位） */
-export interface NpcPreset {
-  avatarId: AvatarId;
-  seatId: string;
-  /** 头顶昵称 */
-  name: string;
-}
+/** 装饰：在线人数（与本机随机出场人数无强关联，仅展示） */
+export const DECOR_ONLINE_COUNT_RANGE: [number, number] = [18, 36];
 
-export const NPC_PRESETS: NpcPreset[] = [
-  // 一个程序员小哥坐在沙发拐角，朝里看
-  { avatarId: '01', seatId: 'sofa-4', name: '小鱼干' },
-];
-
-/** 装饰用的"在线人数" */
-export const DECOR_ONLINE_COUNT = 28;
-
-/** 装饰用的"空闲座位数"（实时根据 SEATS - 已占用计算） */
+/** 总座位数（含吧台，仅供统计） */
 export const TOTAL_SEATS = SEATS.length;
+
+/** 本期 NPC 数量随机区间（含"我"） */
+export const NPC_COUNT_RANGE: [number, number] = [5, 9];
+
+/** 期望坐着的比例：决定每次场景大致多少人坐、多少人站 */
+export const SIT_RATIO = 0.6;
+
+/** 一个画面里同一种 avatar 的最大出现次数（避免视觉上像复制粘贴） */
+export const MAX_SAME_AVATAR_PER_SCENE = 2;
+
+/** 可用昵称池（NPC 名字随机抽） */
+export const NAME_POOL = [
+  '小鱼干', '阿喵', '可乐', '布丁', '咖啡豆', '麻薯',
+  '青提', '柚子', '苏打', '西柚', '芝士', '抹茶',
+  '柠檬', '焦糖', '芒果', '荔枝', '葡萄', '哈密瓜',
+];
