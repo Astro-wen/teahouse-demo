@@ -76,10 +76,19 @@ export const STAND_SPOTS: StandSpot[] = [
 /** 可放人的座位（排除吧台） */
 export const SPAWNABLE_SEATS: Seat[] = SEATS.filter(s => s.spawnable);
 
-export type AvatarId = '01' | '03';
+export type AvatarId = '01' | '03' | 'astrowen';
 
-/** 可用的角色形象 ID */
-export const AVAILABLE_AVATARS: AvatarId[] = ['01', '03'];
+/** 用户可选的角色形象 ID：特殊 NPC 永远不作为“我”出现 */
+export const PLAYER_AVATARS: AvatarId[] = ['01', '03'];
+
+/** NPC 可用的角色形象 ID */
+export const AVAILABLE_AVATARS: AvatarId[] = [...PLAYER_AVATARS, 'astrowen'];
+
+/** 只有站姿 sprite、没有坐姿 sprite 的 avatar：抽坐席时自动跳过 */
+export const STAND_ONLY_AVATARS: AvatarId[] = ['astrowen'];
+
+/** 一个画面里最多出现一次的特殊 NPC */
+export const UNIQUE_NPC_AVATARS: AvatarId[] = ['astrowen'];
 
 /** 装饰：在线人数（与本机随机出场人数无强关联，仅展示） */
 export const DECOR_ONLINE_COUNT_RANGE: [number, number] = [18, 36];

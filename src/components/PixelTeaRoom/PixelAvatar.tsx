@@ -33,6 +33,8 @@ const SPRITE_META: Record<string, SpriteMeta> = {
   // avatar-03 坐姿统一只保留 sit-right 一套素材，sit-left 通过运行时镜像得到
   // （之前 sit-left 是另一套画风/有残缺帧，删除以保证视觉一致）
   'avatar-03-sit-right': { sheetWidth: 130, frameWidth: 65, frameHeight: 120, frameCount: 2, duration: 900 },
+  // astrowen：红外套 + 工牌 + 咖啡杯/手机，特殊 NPC，仅站姿、单场景最多出现一次
+  'avatar-astrowen-stand': { sheetWidth: 660, frameWidth: 66, frameHeight: 140, frameCount: 10, duration: 1800 },
 };
 
 /**

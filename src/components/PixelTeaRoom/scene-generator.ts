@@ -12,7 +12,10 @@ import {
   MAX_SAME_AVATAR_PER_SCENE,
   NAME_POOL,
   NPC_COUNT_RANGE,
+  PLAYER_AVATARS,
   SIT_RATIO,
+  STAND_ONLY_AVATARS,
+  UNIQUE_NPC_AVATARS,
   type AvatarId,
 } from './seats.config';
 import { createSampler } from './zone-sampler';
@@ -62,12 +65,9 @@ function shuffle<T>(arr: readonly T[]): T[] {
   return a;
 }
 
-function pickAvatar(): AvatarId {
-  // 兼容保留：generateSceneFromZones 内部用 pickAvatarConstrained 走配额限制
-  return AVAILABLE_AVATARS[Math.floor(Math.random() * AVAILABLE_AVATARS.length)];
+function pickPlayerAvatar(): AvatarId {
+  return PLAYER_AVATARS[Math.floor(Math.random() * PLAYER_AVATARS.length)];
 }
-// 显式标记使用，避免 tsc noUnusedLocals 报错（TypeScript 默认 noUnusedLocals=false 时无影响）
-void pickAvatar;
 
 function fromSeat(
   seat: SeatZone,
@@ -181,11 +181,14 @@ export function generateSceneFromZones(
   ];
   const slotsShuffled = shuffle(slots);
 
+  // “我”永远只允许使用 PLAYER_AVATARS，避免特殊 NPC（如 astrowen）成为用户形象。
+  const safeMyAvatarId = PLAYER_AVATARS.includes(myAvatarId) ? myAvatarId : pickPlayerAvatar();
+
   if (slotsShuffled.length === 0) {
     return {
       me: {
         id: 'me-fallback',
-        avatarId: myAvatarId,
+        avatarId: safeMyAvatarId,
         name: '我',
         anchorX: zonesDoc.viewport.w / 2,
         anchorY: zonesDoc.viewport.h - 80,
@@ -199,16 +202,37 @@ export function generateSceneFromZones(
   }
 
   // 4. avatar 计数器：约束同一种 avatar 出现次数
-  // 我已经占了 myAvatarId 一个名额
-  const avatarCount: Record<AvatarId, number> = { '01': 0, '03': 0 };
-  avatarCount[myAvatarId] = 1;
+  const avatarCount: Record<AvatarId, number> = { '01': 0, '03': 0, 'astrowen': 0 };
+  let effectiveMyAvatar: AvatarId = safeMyAvatarId;
+  avatarCount[effectiveMyAvatar] = 1;
 
-  function pickAvatarConstrained(): AvatarId {
-    const candidates = AVAILABLE_AVATARS.filter(
-      a => (avatarCount[a] ?? 0) < MAX_SAME_AVATAR_PER_SCENE,
-    );
-    const pool = candidates.length > 0 ? candidates : AVAILABLE_AVATARS;
-    const picked = pool[Math.floor(Math.random() * pool.length)];
+  function getAvatarLimit(avatarId: AvatarId): number {
+    return UNIQUE_NPC_AVATARS.includes(avatarId) ? 1 : MAX_SAME_AVATAR_PER_SCENE;
+  }
+
+  function getAvatarPool(forSeat: boolean): AvatarId[] {
+    const pool = forSeat
+      ? AVAILABLE_AVATARS.filter(a => !STAND_ONLY_AVATARS.includes(a))
+      : AVAILABLE_AVATARS.slice();
+    return pool.filter(a => (avatarCount[a] ?? 0) < getAvatarLimit(a));
+  }
+
+  /**
+   * 受约束地抽 avatar：
+   *   - 同一种普通 avatar 出现次数不超过 MAX_SAME_AVATAR_PER_SCENE
+   *   - UNIQUE_NPC_AVATARS（astrowen）单场景最多出现一次
+   *   - 当 slot 是坐席时，跳过 STAND_ONLY_AVATARS（这些没有坐姿 sprite）
+   */
+  function pickAvatarConstrained(forSeat: boolean): AvatarId {
+    let candidates = getAvatarPool(forSeat);
+    if (candidates.length === 0) {
+      // 兜底：忽略普通 avatar 次数限制，但仍不重复唯一 NPC，坐席仍必须能坐
+      candidates = (forSeat
+        ? AVAILABLE_AVATARS.filter(a => !STAND_ONLY_AVATARS.includes(a))
+        : AVAILABLE_AVATARS.slice()
+      ).filter(a => !UNIQUE_NPC_AVATARS.includes(a) || (avatarCount[a] ?? 0) === 0);
+    }
+    const picked = candidates[Math.floor(Math.random() * candidates.length)];
     avatarCount[picked] = (avatarCount[picked] ?? 0) + 1;
     return picked;
   }
@@ -217,14 +241,14 @@ export function generateSceneFromZones(
 
   const meSlot = slotsShuffled[0];
   const me = meSlot.kind === 'seat'
-    ? fromSeat(meSlot.seat, myAvatarId, '我', 'me', true)
-    : fromStand(meSlot.zone, { x: meSlot.x, y: meSlot.y }, myAvatarId, '我', 'me', true);
+    ? fromSeat(meSlot.seat, effectiveMyAvatar, '我', 'me', true)
+    : fromStand(meSlot.zone, { x: meSlot.x, y: meSlot.y }, effectiveMyAvatar, '我', 'me', true);
 
   const npcs: AvatarInstance[] = [];
   for (let i = 1; i < slotsShuffled.length; i++) {
     const slot = slotsShuffled[i];
-    const avatarId = pickAvatarConstrained();
-    const name = names[i] ?? `NPC${i}`;
+    const avatarId = pickAvatarConstrained(slot.kind === 'seat');
+    const name = avatarId === 'astrowen' ? 'astrowen' : (names[i] ?? `NPC${i}`);
     const inst = slot.kind === 'seat'
       ? fromSeat(slot.seat, avatarId, name, 'npc')
       : fromStand(slot.zone, { x: slot.x, y: slot.y }, avatarId, name, 'npc');

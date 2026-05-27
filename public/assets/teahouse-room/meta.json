@@ -13,6 +13,7 @@
     "avatar-01-sit-left":  { "sheetWidth": 171, "sheetHeight": 120, "frameWidth": 57, "frameHeight": 120, "frameCount": 3 },
     "avatar-01-sit-right": { "sheetWidth": 153, "sheetHeight": 120, "frameWidth": 51, "frameHeight": 120, "frameCount": 3 },
     "avatar-03-stand":     { "sheetWidth": 366, "sheetHeight": 140, "frameWidth": 61, "frameHeight": 140, "frameCount": 6 },
-    "avatar-03-sit-right": { "sheetWidth": 130, "sheetHeight": 120, "frameWidth": 65, "frameHeight": 120, "frameCount": 2, "$note": "sit-left 通过运行时镜像此 sheet 得到，不再单独提供 sit-left 文件" }
+    "avatar-03-sit-right": { "sheetWidth": 130, "sheetHeight": 120, "frameWidth": 65, "frameHeight": 120, "frameCount": 2, "$note": "sit-left 通过运行时镜像此 sheet 得到，不再单独提供 sit-left 文件" },
+    "avatar-astrowen-stand": { "sheetWidth": 660, "sheetHeight": 140, "frameWidth": 66, "frameHeight": 140, "frameCount": 10, "$note": "astrowen 特殊 NPC，仅站姿；单场景最多出现一次，用户不会使用该 avatar" }
   }
 }

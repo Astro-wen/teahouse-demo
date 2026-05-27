@@ -12,8 +12,8 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PixelAvatar from './PixelAvatar';
 import {
-  AVAILABLE_AVATARS,
   DECOR_ONLINE_COUNT_RANGE,
+  PLAYER_AVATARS,
   ROOM_LOGICAL_HEIGHT,
   ROOM_LOGICAL_WIDTH,
   type AvatarId,
@@ -49,11 +49,11 @@ const POSTER_URL: Record<DaySlot, string> = {
 };
 
 function pickAvatar(): AvatarId {
-  return AVAILABLE_AVATARS[Math.floor(Math.random() * AVAILABLE_AVATARS.length)];
+  return PLAYER_AVATARS[Math.floor(Math.random() * PLAYER_AVATARS.length)];
 }
 
 function pickAvatarExclude(prev: AvatarId): AvatarId {
-  const pool = AVAILABLE_AVATARS.filter(a => a !== prev);
+  const pool = PLAYER_AVATARS.filter(a => a !== prev);
   return pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : prev;
 }
 
@@ -102,13 +102,11 @@ export default function PixelTeaRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zones.status]);
 
-  // 我的形象变化 → 同步 scene.me.avatarId
+  // 我的形象变化时重新生成场景，确保特殊 NPC 不会被强塞到“我”的位置
   useEffect(() => {
-    setScene(prev => {
-      if (!prev) return prev;
-      return { ...prev, me: { ...prev.me, avatarId: myAvatarId } };
-    });
-  }, [myAvatarId]);
+    if (zones.status === 'loading') return;
+    setScene(generateSceneFromZones(zones.doc, myAvatarId));
+  }, [myAvatarId, zones.status, zones.doc]);
 
   // ===== 装饰：在线人数（只随机一次） =====
   const onlineCount = useMemo(
